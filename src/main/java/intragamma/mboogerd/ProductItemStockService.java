@@ -17,4 +17,9 @@ public class ProductItemStockService implements StockService {
         long reserved = productItems.countByProductIdAndIsReservedTrue(productId);
         return new Stock(available, reserved);
     }
+
+//    @Override
+//    public Iterable<Long> reserveProductItems(long productId) {
+//        return null;
+//    }
 }

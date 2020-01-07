@@ -33,7 +33,7 @@ public class ProductItemStockRepositoryTest {
     @Test
     void nonReservedProductItemIsAvailable() {
         Long productId = 1L;
-        ProductItem productItem = new ProductItem(0L, productId, false);
+        ProductItem productItem = new ProductItem(productId);
         entityManager.persist(productItem);
         entityManager.flush();
 
@@ -44,12 +44,29 @@ public class ProductItemStockRepositoryTest {
     @Test
     void reservedProductItemIsUnavailable() {
         Long productId = 1L;
-        ProductItem productItem = new ProductItem(0L, productId, true);
+        ProductItem productItem = new ProductItem(productId);
+        productItem.setIsReserved(true);
         entityManager.persist(productItem);
         entityManager.flush();
 
         assert repository.countByProductIdAndIsReservedFalse(productId) == 0;
         assert repository.countByProductIdAndIsReservedTrue(productId) == 1;
+    }
+
+    @Test
+    void reservingAProductMakesItUnavailable() {
+        // Given a single ProductItem for a given productId
+        Long productId = 1L;
+        ProductItem productItem = new ProductItem(productId);
+        entityManager.persist(productItem);
+        entityManager.flush();
+
+        // When we reserve the ProductItem
+        assert repository.reserveProductItem(productItem.getId()) == 1;
+
+        // Then no product items should be available for the given productId
+        assert repository.countByProductIdAndIsReservedFalse(productId) == 0;
+
     }
 
 }
