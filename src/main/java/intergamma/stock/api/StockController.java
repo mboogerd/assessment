@@ -4,6 +4,7 @@ import intergamma.stock.repository.StockItem;
 import intergamma.stock.service.StockService;
 import javassist.NotFoundException;
 import lombok.SneakyThrows;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,11 +42,17 @@ public class StockController {
     @SneakyThrows
     @PatchMapping(value = "/stockitem/{stockItemId}")
     public StockItem patchStockItem(@PathVariable Long stockItemId, @RequestBody StockItemPatch patch) {
-        return stockService.updateStockItem(stockItemId, patch).orElseThrow(() -> new NotFoundException("Could not find StockItem"));
+        return stockService.updateStockItem(stockItemId, patch)
+                .orElseThrow(() -> new NotFoundException("Could not find StockItem"));
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Void> handle(NotFoundException e) {
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Void> handle(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 }

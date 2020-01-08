@@ -122,11 +122,29 @@ public class ComponentTest {
 
     @Test
     void DoubleReservationDisallowed() {
+        // Given a product with 1 available stock item
+        String mockProductCode = this.mockProductCode + "DoubleReservation";
+        postStockIncrement(mockProductCode, new StockIncrement(mockStoreCode, 1));
 
+        // When we retrieve the id of the stock item
+        ResponseEntity<StockItems> stockEntity = getStockItems(mockProductCode);
+        Collection<StockItem> stockItems = IterableUtil.toCollection(stockEntity.getBody().getStockItems());
+        Long stockItemId = stockItems.stream().findFirst().get().getId();
+
+        // And we reserve that item
+        StockItemPatch stockItemPatch = new StockItemPatch();
+        stockItemPatch.setReserved(true);
+        patchStockItem(stockItemId, stockItemPatch);
+
+        // And we do so again...
+        ResponseEntity<StockItem> stockItemEntityDuplicate = patchStockItem(stockItemId, stockItemPatch);
+
+        // Then the item should appear to be reserved
+        assert stockItemEntityDuplicate.getStatusCode() == HttpStatus.CONFLICT;
     }
 
     @Test
-    void ReservedStockCannotBeRemoved() {
+    void ReservedStockIsEventuallyCleaned() {
 
     }
 
