@@ -2,6 +2,9 @@ package intergamma.stock.api;
 
 import intergamma.stock.repository.StockItem;
 import intergamma.stock.service.StockService;
+import javassist.NotFoundException;
+import lombok.SneakyThrows;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -35,8 +38,14 @@ public class StockController {
         stockService.removeStockItem(stockItemId);
     }
 
+    @SneakyThrows
     @PatchMapping(value = "/stockitem/{stockItemId}")
-    public Optional<StockItem> patchStockItem(@PathVariable Long stockItemId, @RequestBody StockItemPatch patch) {
-        return stockService.updateStockItem(stockItemId, patch);
+    public StockItem patchStockItem(@PathVariable Long stockItemId, @RequestBody StockItemPatch patch) {
+        return stockService.updateStockItem(stockItemId, patch).orElseThrow(() -> new NotFoundException("Could not find StockItem"));
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Void> handle(NotFoundException e) {
+        return ResponseEntity.notFound().build();
     }
 }

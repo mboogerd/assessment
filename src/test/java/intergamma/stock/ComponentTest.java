@@ -1,6 +1,7 @@
 package intergamma.stock;
 
 import intergamma.stock.api.StockIncrement;
+import intergamma.stock.api.StockItemPatch;
 import intergamma.stock.api.StockItems;
 import intergamma.stock.api.StockTotals;
 import intergamma.stock.repository.StockItem;
@@ -8,23 +9,30 @@ import org.assertj.core.util.IterableUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ComponentTest {
+
     @Autowired
-    TestRestTemplate restTemplate;
+    private TestRestTemplate restTemplate;
 
     private final String mockProductCode = "mock-product";
     private final String mockStoreCode = "mock-store";
 
     @Test
-    void StockTotalsShouldBeAvailableForMockProduct() {
+    void StockTotalsShouldBeAvailableForUnavailableProduct() {
         ResponseEntity<StockTotals> stockEntity = getStockTotals(mockProductCode);
         assert stockEntity.getStatusCode() == HttpStatus.OK;
         StockTotals stockTotals = stockEntity.getBody();
@@ -33,7 +41,7 @@ public class ComponentTest {
     }
 
     @Test
-    void StockItemsShouldBeEmptyForMockProduct() {
+    void StockItemsShouldBeEmptyForUnavailableProduct() {
         ResponseEntity<StockItems> stockEntity = getStockItems(mockProductCode);
         assert stockEntity.getStatusCode() == HttpStatus.OK;
         assert !stockEntity.getBody().getStockItems().iterator().hasNext();
@@ -60,8 +68,7 @@ public class ComponentTest {
     void RemovedStockIsUnavailable() {
         // Given a product with 1 available stock item
         String mockProductCode = this.mockProductCode + "RemovedStockTest";
-        StockIncrement stockIncrement = new StockIncrement(mockStoreCode, 1);
-        ResponseEntity<Void> response = postStockIncrement(mockProductCode, stockIncrement);
+        postStockIncrement(mockProductCode, new StockIncrement(mockStoreCode, 1));
 
         // When we retrieve the id of the stock item
         ResponseEntity<StockItems> stockEntity = getStockItems(mockProductCode);
@@ -83,18 +90,47 @@ public class ComponentTest {
         assert stockTotals.getReserved() == 0;
     }
 
+    @Test
+    void CannotReserveNonExistentStockItem() {
+        // When we patch a non existent product
+        StockItemPatch stockItemPatch = new StockItemPatch();
+        ResponseEntity<StockItem> stockItemEntity = patchStockItem(Long.MAX_VALUE, stockItemPatch);
+        // Then it should throw a not found
+        assert stockItemEntity.getStatusCode() == HttpStatus.NOT_FOUND;
+    }
+
+    @Test
+    void ReservingProductsWorks() {
+        // Given a product with 1 available stock item
+        String mockProductCode = this.mockProductCode + "ReservingProducts";
+        postStockIncrement(mockProductCode, new StockIncrement(mockStoreCode, 1));
+
+        // When we retrieve the id of the stock item
+        ResponseEntity<StockItems> stockEntity = getStockItems(mockProductCode);
+        Collection<StockItem> stockItems = IterableUtil.toCollection(stockEntity.getBody().getStockItems());
+        Long stockItemId = stockItems.stream().findFirst().get().getId();
+
+        // And we reserve that item
+        StockItemPatch stockItemPatch = new StockItemPatch();
+        stockItemPatch.setReserved(true);
+        ResponseEntity<StockItem> stockItemEntity = patchStockItem(stockItemId, stockItemPatch);
+
+        // Then the item should appear to be reserved
+        assert stockItemEntity.getStatusCode() == HttpStatus.OK;
+        assert stockItemEntity.getBody().isReserved();
+    }
+
+    @Test
+    void DoubleReservationDisallowed() {
+
+    }
 
     @Test
     void ReservedStockCannotBeRemoved() {
 
     }
 
-    @Test
-    void ReservingProductsWorks() {
-
-    }
-
-    /* API utility methods */
+    /* API client utility methods */
     private ResponseEntity<StockTotals> getStockTotals(String productCode) {
         return restTemplate.getForEntity("/product/" + productCode, StockTotals.class);
     }
@@ -116,5 +152,31 @@ public class ComponentTest {
 
     private ResponseEntity<Void> deleteStockItem(Long stockItemId) {
         return restTemplate.exchange("/stockitem/" + stockItemId, HttpMethod.DELETE, null, Void.class);
+    }
+
+    private ResponseEntity<StockItem> patchStockItem(Long stockItemId, StockItemPatch stockItemPatch) {
+        return restTemplate.exchange("/stockitem/" + stockItemId, HttpMethod.PATCH, new HttpEntity<>(stockItemPatch), StockItem.class);
+    }
+
+    /**
+     * This is required to prevent:
+     * "Invalid HTTP method: PATCH; nested exception is java.net.ProtocolException: Invalid HTTP method: PATCH"
+     *
+     * Caused by: java.net.ProtocolException: Invalid HTTP method: PATCH
+     * 	at java.base/java.net.HttpURLConnection.setRequestMethod(HttpURLConnection.java:487)
+     * 	at java.base/sun.net.www.protocol.http.HttpURLConnection.setRequestMethod(HttpURLConnection.java:569)
+     *
+     * Yes... in Java 11, we are still not allowed to use PATCH as a method, which has been standardized TEN years ago...
+     *
+     */
+    @TestConfiguration
+    static class RestTemplateConfiguration {
+        @Bean
+        public RestTemplate restTemplate() {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setReadTimeout(600000);
+            requestFactory.setConnectTimeout(600000);
+            return new RestTemplate(requestFactory);
+        }
     }
 }

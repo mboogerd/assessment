@@ -52,11 +52,12 @@ public class DefaultStockService implements StockService {
 
     @Override
     public Optional<StockItem> updateStockItem(long stockItemId, StockItemPatch patch) {
-        Optional<StockItem> updated = stockItemRepository
-                .findById(stockItemId)
-                .map(stockItem -> stockItem.apply(patch));
+        Optional<StockItem> updated = stockItemRepository.findById(stockItemId);
 
-        updated.ifPresent(stockItemRepository::save);
+        updated.ifPresent(stockItem -> {
+            stockItem.apply(patch);
+            stockItemRepository.save(stockItem);
+        });
 
         return updated;
     }

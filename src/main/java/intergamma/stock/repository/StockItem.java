@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import intergamma.stock.api.StockItemPatch;
 import lombok.Data;
 
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -40,7 +39,7 @@ public class StockItem {
         return reservationTimestamp != null;
     }
 
-    public void setReserved(boolean newReservationState) {
+    public void setReservationState(boolean newReservationState) {
         if(newReservationState && isReserved())
             throw new IllegalStateException("Cannot make a double reservation for a single StockItem");
 
@@ -52,7 +51,7 @@ public class StockItem {
 
     public StockItem apply(StockItemPatch patch) {
         if(patch.getReserved() != null)
-            setReserved(patch.getReserved());
+            setReservationState(patch.getReserved());
 
         if(patch.getStoreCode() != null)
             store = patch.getStoreCode();
