@@ -1,5 +1,6 @@
 package intergamma.stock.service;
 
+import intergamma.stock.api.StockItemPatch;
 import intergamma.stock.api.StockItems;
 import intergamma.stock.api.StockTotals;
 import intergamma.stock.repository.StockItem;
@@ -7,6 +8,7 @@ import intergamma.stock.repository.StockItemRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -34,13 +36,11 @@ public class DefaultStockService implements StockService {
 
     @Override
     public StockItems addStockItems(String productCode, String storeCode, int quantity) {
-        Stream<StockItem> stockItemStream = IntStream.range(0, quantity).mapToObj(n -> {
-            StockItem stockItem = new StockItem(productCode);
-            stockItem.setStore(storeCode);
-            return stockItem;
-        });
+        List<StockItem> stockItems = IntStream
+                .range(0, quantity)
+                .mapToObj(n -> new StockItem(productCode, storeCode))
+                .collect(Collectors.toList());
 
-        List<StockItem> stockItems = stockItemStream.collect(Collectors.toList());
         stockItemRepository.saveAll(stockItems);
         return new StockItems(stockItems);
     }
@@ -48,6 +48,17 @@ public class DefaultStockService implements StockService {
     @Override
     public void removeStockItem(Long stockItemId) {
         stockItemRepository.deleteById(stockItemId);
+    }
+
+    @Override
+    public Optional<StockItem> updateStockItem(long stockItemId, StockItemPatch patch) {
+        Optional<StockItem> updated = stockItemRepository
+                .findById(stockItemId)
+                .map(stockItem -> stockItem.apply(patch));
+
+        updated.ifPresent(stockItemRepository::save);
+
+        return updated;
     }
 
     @Override

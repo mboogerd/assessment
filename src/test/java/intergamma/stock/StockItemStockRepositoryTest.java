@@ -46,7 +46,7 @@ public class StockItemStockRepositoryTest {
     @Test
     void reservedProductItemIsUnavailable() {
         StockItem stockItem = new StockItem(productCode);
-        stockItem.reserve();
+        stockItem.setReserved(true);
         entityManager.persist(stockItem);
         entityManager.flush();
 
@@ -62,7 +62,7 @@ public class StockItemStockRepositoryTest {
         entityManager.flush();
 
         // When we reserve the ProductItem
-        assert stockItem.reserve();
+        stockItem.setReserved(true);
         repository.save(stockItem);
 
         // Then no product items should be available for the given productId

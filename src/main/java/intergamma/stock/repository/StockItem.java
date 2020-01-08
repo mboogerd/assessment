@@ -1,6 +1,7 @@
 package intergamma.stock.repository;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import intergamma.stock.api.StockItemPatch;
 import lombok.Data;
 
 import javax.persistence.Embedded;
@@ -30,19 +31,32 @@ public class StockItem {
         this.productCode = productCode;
     }
 
-    public boolean unreserve() {
-        if (reservationTimestamp != null) {
-            reservationTimestamp = null;
-            return true;
-        }
-        return false;
+    public StockItem(String productCode, String storeCode) {
+        this.productCode = productCode;
+        this.store = storeCode;
     }
 
-    public boolean reserve() {
-        if (reservationTimestamp == null) {
+    public boolean isReserved() {
+        return reservationTimestamp != null;
+    }
+
+    public void setReserved(boolean newReservationState) {
+        if(newReservationState && isReserved())
+            throw new IllegalStateException("Cannot make a double reservation for a single StockItem");
+
+        if(newReservationState)
             reservationTimestamp = LocalDateTime.now();
-            return true;
-        }
-        return false;
+        else
+            reservationTimestamp = null;
+    }
+
+    public StockItem apply(StockItemPatch patch) {
+        if(patch.getReserved() != null)
+            setReserved(patch.getReserved());
+
+        if(patch.getStoreCode() != null)
+            store = patch.getStoreCode();
+
+        return this;
     }
 }

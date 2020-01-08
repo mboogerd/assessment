@@ -1,7 +1,10 @@
 package intergamma.stock.api;
 
+import intergamma.stock.repository.StockItem;
 import intergamma.stock.service.StockService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 public class StockController {
@@ -30,5 +33,10 @@ public class StockController {
     @DeleteMapping(value = "/stockitem/{stockItemId}")
     public void deleteStockItem(@PathVariable Long stockItemId) {
         stockService.removeStockItem(stockItemId);
+    }
+
+    @PatchMapping(value = "/stockitem/{stockItemId}")
+    public Optional<StockItem> patchStockItem(@PathVariable Long stockItemId, @RequestBody StockItemPatch patch) {
+        return stockService.updateStockItem(stockItemId, patch);
     }
 }
