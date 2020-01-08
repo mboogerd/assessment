@@ -6,7 +6,9 @@ import intergamma.stock.repository.StockItem;
 import intergamma.stock.repository.StockItemRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Service
 public class DefaultStockService implements StockService {
@@ -31,16 +33,18 @@ public class DefaultStockService implements StockService {
 
     @Override
     public void addStockItems(String productCode, String storeCode, int quantity) {
-        IntStream.range(0, quantity).forEach(n -> {
+        Stream<StockItem> stockItemStream = IntStream.range(0, quantity).mapToObj(n -> {
             StockItem stockItem = new StockItem(productCode);
             stockItem.setStore(storeCode);
-            stockItemRepository.save(stockItem);
+            return stockItem;
         });
+
+        stockItemRepository.saveAll(stockItemStream.collect(Collectors.toList()));
     }
 
     @Override
     public void removeStockItem(Long stockItemId) {
-
+        stockItemRepository.deleteById(stockItemId);
     }
 
     @Override

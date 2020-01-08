@@ -26,4 +26,9 @@ public class StockController {
     public void addStock(@PathVariable String productCode, @RequestBody StockIncrement stockIncrement) {
         stockService.addStockItems(productCode, stockIncrement.getStoreCode(), stockIncrement.getQuantity());
     }
+
+    @DeleteMapping(value = "/stockitem/{stockItemId}")
+    public void deleteStockItem(@PathVariable Long stockItemId) {
+        stockService.removeStockItem(stockItemId);
+    }
 }
