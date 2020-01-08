@@ -17,14 +17,14 @@ public class StockController {
         return stockService.getTotalStock(productCode);
     }
 
-    @GetMapping(value = "/stockitem/{productCode}")
-    public StockItems getStockItems(@PathVariable String productCode) {
-        return stockService.getStockItems(productCode);
+    @PostMapping(value = "/product/{productCode}")
+    public StockItems addStock(@PathVariable String productCode, @RequestBody StockIncrement stockIncrement) {
+        return stockService.addStockItems(productCode, stockIncrement.getStoreCode(), stockIncrement.getQuantity());
     }
 
-    @PostMapping(value = "/product/{productCode}")
-    public void addStock(@PathVariable String productCode, @RequestBody StockIncrement stockIncrement) {
-        stockService.addStockItems(productCode, stockIncrement.getStoreCode(), stockIncrement.getQuantity());
+    @GetMapping(value = "/stockitem")
+    public StockItems getStockItems(@RequestParam(name = "product") String productCode) {
+        return stockService.getStockItems(productCode);
     }
 
     @DeleteMapping(value = "/stockitem/{stockItemId}")

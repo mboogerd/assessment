@@ -103,7 +103,7 @@ public class ComponentTest {
     }
 
     private ResponseEntity<StockItems> getStockItems(String productCode) {
-        return restTemplate.getForEntity("/stockitem/" + productCode, StockItems.class);
+        return restTemplate.getForEntity("/stockitem?product=" + productCode, StockItems.class);
     }
     private Collection<StockItem> getStockItemsCollection(String productCode) {
         StockItems stockItems = getStockItems(productCode).getBody();

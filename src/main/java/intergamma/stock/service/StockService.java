@@ -9,7 +9,7 @@ public interface StockService {
 
     StockItems getStockItems(String productCode);
 
-    void addStockItems(String productCode, String storeCode, int quantity);
+    StockItems addStockItems(String productCode, String storeCode, int quantity);
 
     void removeStockItem(Long stockItemId);
 
