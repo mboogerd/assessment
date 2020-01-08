@@ -1,4 +1,4 @@
-package intragamma.mboogerd;
+package intergamma.mboogerd;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,8 +13,8 @@ public class StockController {
         this.stockService = stockService;
     }
 
-    @GetMapping(value = "/stock/{productId}")
-    public Stock getStockLevel(@PathVariable long productId) {
-        return stockService.getStockLevel(productId);
+    @GetMapping(value = "/stock/{productCode}")
+    public Stock getStockLevel(@PathVariable String productCode) {
+        return stockService.getStockLevel(productCode);
     }
 }

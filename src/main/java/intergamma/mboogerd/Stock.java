@@ -1,4 +1,4 @@
-package intragamma.mboogerd;
+package intergamma.mboogerd;
 
 import lombok.Value;
 
