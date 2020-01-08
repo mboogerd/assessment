@@ -1,4 +1,4 @@
-package intergamma.mboogerd;
+package intergamma.stock;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

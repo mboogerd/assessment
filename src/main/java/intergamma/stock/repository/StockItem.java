@@ -1,7 +1,9 @@
-package intergamma.mboogerd;
+package intergamma.stock.repository;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -17,8 +19,16 @@ public class StockItem {
     @Id
     @GeneratedValue
     Long id;
-    final String productCode;
+    String productCode;
+    String store;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     LocalDateTime reservationTimestamp;
+
+    public StockItem() {}
+
+    public StockItem(String productCode) {
+        this.productCode = productCode;
+    }
 
     public boolean unreserve() {
         if (reservationTimestamp != null) {
@@ -35,5 +45,4 @@ public class StockItem {
         }
         return false;
     }
-
 }

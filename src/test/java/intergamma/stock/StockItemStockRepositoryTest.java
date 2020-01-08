@@ -1,5 +1,7 @@
-package intergamma.mboogerd;
+package intergamma.stock;
 
+import intergamma.stock.repository.StockItem;
+import intergamma.stock.repository.StockItemRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -65,7 +67,6 @@ public class StockItemStockRepositoryTest {
 
         // Then no product items should be available for the given productId
         assert repository.countByProductCodeAndReservationTimestampNull(productCode) == 0;
-
     }
 
 }
