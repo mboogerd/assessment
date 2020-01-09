@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 @Service
 public class DefaultStockService implements StockService {
@@ -70,7 +71,11 @@ public class DefaultStockService implements StockService {
     public void revokeStaleReservations() {
         LocalDateTime staleReservationThreshold = LocalDateTime.now().minus(reservationProperties.getReservationDuration());
         Iterable<StockItem> staleEntries = stockItemRepository.findByReservationTimestampLessThan(staleReservationThreshold);
+        List<StockItem> updated = StreamSupport
+                .stream(staleEntries.spliterator(), false)
+                .peek(stockItem -> stockItem.setReservationState(false))
+                .collect(Collectors.toList());
 
-        stockItemRepository.deleteAll(staleEntries);
+        stockItemRepository.saveAll(staleEntries);
     }
 }
