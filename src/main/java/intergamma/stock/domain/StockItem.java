@@ -1,7 +1,6 @@
-package intergamma.stock.repository;
+package intergamma.stock.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import intergamma.stock.api.StockItemPatch;
 import lombok.Data;
 
 import javax.persistence.Entity;

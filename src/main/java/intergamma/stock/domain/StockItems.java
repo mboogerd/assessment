@@ -1,6 +1,5 @@
-package intergamma.stock.api;
+package intergamma.stock.domain;
 
-import intergamma.stock.repository.StockItem;
 import lombok.Value;
 
 import static java.util.Collections.EMPTY_LIST;

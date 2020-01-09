@@ -1,6 +1,6 @@
 package intergamma.stock;
 
-import intergamma.stock.repository.StockItem;
+import intergamma.stock.domain.StockItem;
 import intergamma.stock.repository.StockItemRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

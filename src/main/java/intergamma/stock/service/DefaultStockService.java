@@ -1,25 +1,28 @@
 package intergamma.stock.service;
 
-import intergamma.stock.api.StockItemPatch;
-import intergamma.stock.api.StockItems;
-import intergamma.stock.api.StockTotals;
-import intergamma.stock.repository.StockItem;
+import intergamma.stock.domain.StockItemPatch;
+import intergamma.stock.domain.StockItems;
+import intergamma.stock.domain.StockTotals;
+import intergamma.stock.domain.StockItem;
 import intergamma.stock.repository.StockItemRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 @Service
 public class DefaultStockService implements StockService {
 
     private final StockItemRepository stockItemRepository;
+    private ReservationProperties reservationProperties;
 
-    public DefaultStockService(StockItemRepository stockItemRepository) {
+    public DefaultStockService(StockItemRepository stockItemRepository, ReservationProperties reservationProperties) {
         this.stockItemRepository = stockItemRepository;
+        this.reservationProperties = reservationProperties;
     }
 
     @Override
@@ -63,12 +66,11 @@ public class DefaultStockService implements StockService {
     }
 
     @Override
-    public Iterable<Long> reserveProduct(String productCode) {
-        return null;
-    }
+    @Scheduled(fixedRate = 1000) // Cleanup once every second
+    public void revokeStaleReservations() {
+        LocalDateTime staleReservationThreshold = LocalDateTime.now().minus(reservationProperties.getReservationDuration());
+        Iterable<StockItem> staleEntries = stockItemRepository.findByReservationTimestampLessThan(staleReservationThreshold);
 
-    @Override
-    public boolean reserveStockItem(Long stockItemId) {
-        return false;
+        stockItemRepository.deleteAll(staleEntries);
     }
 }

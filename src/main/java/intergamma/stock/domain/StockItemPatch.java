@@ -1,4 +1,4 @@
-package intergamma.stock.api;
+package intergamma.stock.domain;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

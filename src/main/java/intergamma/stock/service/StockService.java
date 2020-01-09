@@ -1,9 +1,9 @@
 package intergamma.stock.service;
 
-import intergamma.stock.api.StockItemPatch;
-import intergamma.stock.api.StockItems;
-import intergamma.stock.api.StockTotals;
-import intergamma.stock.repository.StockItem;
+import intergamma.stock.domain.StockItemPatch;
+import intergamma.stock.domain.StockItems;
+import intergamma.stock.domain.StockTotals;
+import intergamma.stock.domain.StockItem;
 
 import java.util.Optional;
 
@@ -19,7 +19,5 @@ public interface StockService {
 
     Optional<StockItem> updateStockItem(long stockItemId, StockItemPatch patch);
 
-    Iterable<Long> reserveProduct(String productCode);
-
-    boolean reserveStockItem(Long stockItemId);
+    void revokeStaleReservations();
 }

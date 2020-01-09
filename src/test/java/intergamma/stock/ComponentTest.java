@@ -1,10 +1,10 @@
 package intergamma.stock;
 
-import intergamma.stock.api.StockIncrement;
-import intergamma.stock.api.StockItemPatch;
-import intergamma.stock.api.StockItems;
-import intergamma.stock.api.StockTotals;
-import intergamma.stock.repository.StockItem;
+import intergamma.stock.domain.StockIncrement;
+import intergamma.stock.domain.StockItemPatch;
+import intergamma.stock.domain.StockItems;
+import intergamma.stock.domain.StockTotals;
+import intergamma.stock.domain.StockItem;
 import org.assertj.core.util.IterableUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collection;
-import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ComponentTest {
@@ -145,7 +146,31 @@ public class ComponentTest {
 
     @Test
     void ReservedStockIsEventuallyCleaned() {
+        // Given a product with 1 available stock item
+        String mockProductCode = this.mockProductCode + "PruneReservations";
+        postStockIncrement(mockProductCode, new StockIncrement(mockStoreCode, 1));
 
+        // When we retrieve the id of the stock item
+        ResponseEntity<StockItems> stockEntity = getStockItems(mockProductCode);
+        Collection<StockItem> stockItems = IterableUtil.toCollection(stockEntity.getBody().getStockItems());
+        Long stockItemId = stockItems.stream().findFirst().get().getId();
+
+        // And we reserve that item
+        StockItemPatch stockItemPatch = new StockItemPatch();
+        stockItemPatch.setReserved(true);
+        patchStockItem(stockItemId, stockItemPatch);
+
+        // And we then wait a while (sufficient for the given cleanup frequency/validity in test scope)
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException ie) {
+            fail("Thread interrupted");
+        }
+
+        // Then the stock should be available again
+        StockTotals stockTotals = getStockTotalsBody(mockProductCode);
+        assert stockTotals.getAvailable() == 1;
+        assert stockTotals.getReserved() == 0;
     }
 
     /* API client utility methods */

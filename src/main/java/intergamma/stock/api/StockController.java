@@ -1,14 +1,12 @@
 package intergamma.stock.api;
 
-import intergamma.stock.repository.StockItem;
+import intergamma.stock.domain.*;
 import intergamma.stock.service.StockService;
 import javassist.NotFoundException;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 public class StockController {
